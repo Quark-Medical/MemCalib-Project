@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="MemCalib benchmarks how appropriately LLM agents use memory. Explore the benchmark, ordered bidirectional credit assignment, and results across three model families.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="MemCalib: Benchmarking and Optimizing Memory Use in LLM Agents">
+  <meta property="og:description" content="A benchmark and reinforcement learning method for calibrated memory use in LLM agents.">
+  <meta name="citation_title" content="MemCalib: Benchmarking and Optimizing Memory Use in LLM Agents">
+  <meta name="citation_author" content="Ruike Cao">
+  <meta name="citation_author" content="Fanyu Zhao">
+  <meta name="citation_author" content="Fugen Yao">
+  <meta name="citation_author" content="Liang Dong">
+  <meta name="citation_author" content="Jian Xu">
+  <meta name="citation_author" content="Yifei Zhao">
+  <meta name="citation_author" content="Han Zhang">
+  <meta name="citation_author" content="Li Xiao">
+  <meta name="citation_publication_date" content="2026/09/21">
+  <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2609.24259">
+  <title>MemCalib — Benchmarking and Optimizing Memory Use in LLM Agents</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main">
+    <header class="paper-header container" id="top">
+      <h1><span>MemCalib: Benchmarking and Optimizing</span><br>Memory Use in LLM Agents</h1>
+      <div class="authors" aria-label="Authors">
+        <span>Ruike Cao<sup>1,2,*</sup></span><span>Fanyu Zhao<sup>2,3,*</sup></span><span>Fugen Yao<sup>2,†</sup></span><span>Liang Dong<sup>2</sup></span><span>Jian Xu<sup>2</sup></span><span class="author-break" aria-hidden="true"></span><span>Yifei Zhao<sup>3</sup></span><span>Han Zhang<sup>3</sup></span><span>Li Xiao<sup>1,†</sup></span>
+      </div>
+      <div class="affiliations"><span><sup>1</sup> University of Science and Technology of China</span><span><sup>2</sup> Qwen Business Unit of Alibaba</span><span><sup>3</sup> Fudan University</span></div>
+      <p class="author-notes"><sup>*</sup> Equal contribution &nbsp; <sup>†</sup> Corresponding authors</p>
+      <div class="resource-links">
+        <a class="button primary" href="https://arxiv.org/abs/2609.24259" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></svg>Paper</a>
+        <a class="button" href="https://github.com/Quark-Medical/memcalib" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></svg>Code</a>
+        <a class="button" href="https://huggingface.co/datasets/ZiLaotou/MemCalib" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg>Dataset</a>
+      </div>
+    </header>
+
+    <section class="teaser container" aria-label="Overview">
+      <figure>
+        <a class="figure-link" href="assets/overview.png" data-figure="MemCalib overview" aria-label="Enlarge research overview"><img src="assets/overview.png" width="2600" height="1012" alt="The same response can over-use a friend's preference and under-use the user's vegetarian constraint. MemCalib-RL reduces both error directions." fetchpriority="high"></a>
+        <figcaption><strong>MemCalib</strong> evaluates whether LLMs give each memory an appropriate degree of influence.<br> <strong>MemCalib-RL</strong> improves memory use by separating over-use and under-use signals.</figcaption>
+      </figure>
+    </section>
+
+    <section class="abstract section" id="abstract" aria-labelledby="abstract-title">
+      <div class="text-container"><h2 id="abstract-title">Abstract</h2><div class="abstract-text"><p>The effectiveness of agent memory ultimately depends on whether the underlying LLM gives each memory in context an appropriate degree of influence over its response. Yet this capability has remained largely overlooked. To assess this capability, we introduce MemCalib, a benchmark grounded in realistic memory-system scenarios for evaluating memory use and advancing optimization algorithms. Results on the MemCalib test set reveal that frontier open- and closed-source models struggle to use memory appropriately. They frequently over-use or under-use memory rather than matching each proposition&#x27;s actual use to its target level, leading to biased, low-quality responses. Experiments with common post-training algorithms, including group relative policy optimization and on-policy self-distillation, further reveal a clear directional skew: trained models improve in one direction while deteriorating in the other. We therefore propose MemCalib-RL, an ordered bidirectional counterfactual credit-assignment algorithm that separates over- and under-use signals and localizes their credit to response tokens through exact atom ablation. Results across model families and scales (Qwen3-8B, Ministral-3-8B-Instruct, and Qwen3.5-35B-A3B) show that MemCalib-RL achieves the best overall performance while better balancing over-use and under-use, with gains generalizing beyond MemCalib in external benchmark evaluation. Further experiments support its design choices and robustness and provide insight into its training dynamics.</p></div></div>
+    </section>
+
+    <section class="section container" id="benchmark" aria-labelledby="benchmark-title">
+      <h2 id="benchmark-title">MemCalib Benchmark</h2>
+      <p>MemCalib contains <strong>15,000 examples</strong> and <strong>234,220 atomic propositions</strong> across health, general assistance, and coding. Each example pairs a query with composite memory blocks. The constituent propositions are annotated with ideal use levels and atom-specific rubrics.</p>
+      <p>For a given query, each memory atom has one of three ideal use levels:</p>
+      <dl class="use-levels">
+        <div><dt><span class="level a">A</span> Ignore</dt><dd>Leaves no answer-specific footprint.</dd></div>
+        <div><dt><span class="level b">B</span> Bound</dt><dd>Provides bounded local support.</dd></div>
+        <div><dt><span class="level c">C</span> Control</dt><dd>Determines a material conclusion, constraint, or recommendation.</dd></div>
+      </dl>
+      <p>The dataset comprises 7,500 health, 3,750 general-assistance, and 3,750 coding examples, split into <strong>13,500 training</strong> and <strong>1,500 held-out test</strong> examples. The paper reserves 1,500 training examples for validation.</p>
+      <p class="dataset-link"><a href="https://huggingface.co/datasets/ZiLaotou/MemCalib" target="_blank" rel="noopener noreferrer">Dataset on Hugging Face →</a></p>
+    </section>
+
+    <section class="section container method" id="method" aria-labelledby="method-title">
+      <h2 id="method-title">MemCalib-RL</h2>
+      <p class="section-subtitle">Ordered Bidirectional Credit Assignment</p>
+      <figure>
+        <a class="figure-link" href="assets/memcalib-rl.png" data-figure="MemCalib-RL" aria-label="Enlarge MemCalib-RL method figure"><img src="assets/memcalib-rl.png" width="3000" height="934" alt="Nine ideal–actual reward channels, exact atom ablation, and mean-preserving token-level advantage redistribution." loading="lazy"></a>
+      </figure>
+      <p>MemCalib-RL separates the nine ideal–actual use transitions into distinct reward channels. Exact atom ablation compares token log-likelihoods for the same response under full and ablated memories. This bidirectional counterfactual evidence redistributes each channel's advantage across response tokens while preserving its response-level mean.</p>
+    </section>
+
+    <section class="section container results" id="results" aria-labelledby="results-title">
+      <h2 id="results-title">Experimental Results</h2>
+      <p>MemCalib-RL achieves the highest Sample Calibration Score (SCS) and Exact Calibration across all three models. Relative to Cold-start, it reduces both over-use and under-use across model families and scales.</p>
+      <figure class="results-figure">
+        <a class="figure-link" href="assets/complete-results.png" data-figure="Complete MemCalib results — Appendix, Table 9" aria-label="Enlarge complete experimental results"><img src="assets/complete-results.png" width="1932" height="1700" alt="Table 9 from the paper appendix: complete results for Qwen3-8B, Ministral-3-8B-Instruct, and Qwen3.5-35B-A3B, including SCS, Exact, sMOS, sMUS, AOR, and AUR. Red and blue indicate the best and second-best results." loading="lazy"></a>
+      </figure>
+    </section>
+
+    <section class="section container citation" id="citation" aria-labelledby="citation-title">
+      <h2 id="citation-title">BibTeX</h2>
+      <div class="citation-box"><button id="copy-citation" type="button">Copy</button><pre><code id="bibtex">@misc{cao2026memcalib,
+  title = {MemCalib: Benchmarking and Optimizing Memory Use in LLM Agents},
+  author = {Ruike Cao and Fanyu Zhao and Fugen Yao and Liang Dong and
+            Jian Xu and Yifei Zhao and Han Zhang and Li Xiao},
+  year = {2026},
+  eprint = {2609.24259},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.LG},
+  url = {https://arxiv.org/abs/2609.24259}
+}</code></pre><span class="sr-only" id="copy-status" role="status"></span></div>
+    </section>
+  </main>
+  <footer><p>Page layout inspired by <a href="https://nerfies.github.io/" target="_blank" rel="noopener noreferrer">Nerfies</a>.</p></footer>
+  <dialog id="figure-dialog" aria-label="Expanded paper figure"><div class="dialog-toolbar"><span id="figure-title"></span><button type="button" id="close-figure" aria-label="Close expanded figure">Close <span aria-hidden="true">×</span></button></div><div class="dialog-image"><img id="expanded-figure" alt=""></div></dialog>
+
+</body>
+</html>
